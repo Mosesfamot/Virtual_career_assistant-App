@@ -6,8 +6,11 @@ import datetime
 
 auth = Blueprint("auth", __name__)
 
-@auth.route("/register", methods=["POST"])
+@auth.route("/register", methods=["POST", "OPTIONS"])
 def register():
+    if request.method == "OPTIONS":
+        return jsonify({"ok": True}), 200  # Preflight OK
+
     data = request.get_json()
     if users_collection.find_one({"email": data["email"]}):
         return jsonify({"error": "Email already exists"}), 409
@@ -21,8 +24,11 @@ def register():
     users_collection.insert_one(user)
     return jsonify({"message": "User registered successfully"}), 201
 
-@auth.route("/login", methods=["POST"])
+@auth.route("/login", methods=["POST", "OPTIONS"])
 def login():
+    if request.method == "OPTIONS":
+        return jsonify({"ok": True}), 200  # Preflight OK
+
     data = request.get_json()
     user = users_collection.find_one({"email": data["email"]})
     if not user or not check_password(data["password"], user["password"]):
